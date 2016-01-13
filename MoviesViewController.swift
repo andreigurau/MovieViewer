@@ -11,6 +11,7 @@ import AFNetworking
 class MoviesViewController: UIViewController,UITableViewDataSource,UITableViewDelegate {
 
     @IBOutlet var scrollView: UIScrollView!
+    
     @IBOutlet weak var tableView: UITableView!
     var refreshControl: UIRefreshControl!
     
@@ -52,7 +53,7 @@ class MoviesViewController: UIViewController,UITableViewDataSource,UITableViewDe
         // Do any additional setup after loading the view.
         refreshControl = UIRefreshControl()
         refreshControl.addTarget(self, action: "onRefresh", forControlEvents: UIControlEvents.ValueChanged)
-        //scrollView.insertSubview(refreshControl, atIndex: 0)
+        tableView.insertSubview(refreshControl, atIndex: 0)
     }
 
     override func didReceiveMemoryWarning() {
