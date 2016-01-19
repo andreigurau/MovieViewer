@@ -18,7 +18,7 @@ class MoviesViewController: UIViewController,UITableViewDataSource,UITableViewDe
         super.viewDidAppear(animated)
         if(!ifLoaded)
         {
-        //EZLoadingActivity.show("Loading...", disableUI: true)
+        EZLoadingActivity.show("Loading...", disableUI: true)
             ifLoaded = true
         }
     }
@@ -57,7 +57,7 @@ class MoviesViewController: UIViewController,UITableViewDataSource,UITableViewDe
                 else
                 {
                     //self.networkErrorView.hidden = false
-                    //EZLoadingActivity.hide(success: false, animated: false)
+                    EZLoadingActivity.hide(success: false, animated: false)
                     self.networkErrorView.hidden = false
                 }
         });
@@ -96,8 +96,13 @@ class MoviesViewController: UIViewController,UITableViewDataSource,UITableViewDe
         let imageUrl = NSURL(string: baseUrl + posterPath)
         
         cell.posterView.setImageWithURL(imageUrl!)
+            
+            cell.posterView.alpha = 0
+            UIView.animateWithDuration(0.3, animations: { () -> Void in
+                cell.posterView.alpha = 1.0
+            })
         }
-        //EZLoadingActivity.hide(success: true, animated: false)
+        EZLoadingActivity.hide(success: true, animated: false)
         
         //print("row \(indexPath.row)")
         return cell
@@ -118,7 +123,7 @@ class MoviesViewController: UIViewController,UITableViewDataSource,UITableViewDe
     }*/
     
     func refreshControlAction(refreshControl: UIRefreshControl) {
-        //EZLoadingActivity.show("Loading...", disableUI: true)
+        EZLoadingActivity.show("Loading...", disableUI: true)
         // Make network request to fetch latest data
         networkErrorView.hidden = true
         
@@ -145,7 +150,7 @@ class MoviesViewController: UIViewController,UITableViewDataSource,UITableViewDe
                             
                             self.movies = responseDictionary["results"] as! [NSDictionary]
                             self.tableView.reloadData()
-                            //EZLoadingActivity.hide(success: true, animated: false)
+                            EZLoadingActivity.hide(success: true, animated: false)
                     }
                 }
                 else
@@ -175,8 +180,10 @@ class MoviesViewController: UIViewController,UITableViewDataSource,UITableViewDe
         let detailViewController = segue.destinationViewController as! DetailViewController
         detailViewController.movie = movie
         
-        
-        
+        //cell.selectionStyle = .None
+        let backgroundView = UIView()
+        backgroundView.backgroundColor = UIColor.redColor()
+        cell.selectedBackgroundView = backgroundView
         
         print("prepare for segue")
     // Get the new view controller using segue.destinationViewController.
