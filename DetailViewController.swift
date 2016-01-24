@@ -38,6 +38,7 @@ class DetailViewController: UIViewController {
             
             posterImageView.setImageWithURL(imageUrl!)
         }
+        self.navigationItem.title = title
     }
 
     override func didReceiveMemoryWarning() {

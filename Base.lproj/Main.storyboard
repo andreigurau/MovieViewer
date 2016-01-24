@@ -21,13 +21,11 @@
                                     <rect key="frame" x="0.0" y="64" width="320" height="41"/>
                                     <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                                     <subviews>
-                                        <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Network Error" textAlignment="center" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" id="2Cf-TX-EUf">
-                                            <rect key="frame" x="100" y="12" width="123" height="21"/>
-                                            <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
-                                            <fontDescription key="fontDescription" type="system" pointSize="17"/>
-                                            <color key="textColor" red="1" green="0.0" blue="0.0" alpha="1" colorSpace="calibratedRGB"/>
-                                            <nil key="highlightedColor"/>
-                                        </label>
+                                        <searchBar contentMode="redraw" placeholder="Search for a movie" showsCancelButton="YES" id="hwt-eQ-CBP">
+                                            <rect key="frame" x="0.0" y="-1" width="320" height="44"/>
+                                            <autoresizingMask key="autoresizingMask" widthSizable="YES" flexibleMaxY="YES"/>
+                                            <textInputTraits key="textInputTraits"/>
+                                        </searchBar>
                                     </subviews>
                                     <color key="backgroundColor" red="0.0" green="0.0" blue="0.0" alpha="1" colorSpace="calibratedRGB"/>
                                     <accessibility key="accessibilityConfiguration">
@@ -76,7 +74,7 @@
                     </view>
                     <navigationItem key="navigationItem" title="Movies" id="HX8-KQ-foR"/>
                     <connections>
-                        <outlet property="networkErrorView" destination="eRB-i6-LaP" id="s2a-Ks-LJu"/>
+                        <outlet property="searchBar" destination="hwt-eQ-CBP" id="pE7-6W-BDh"/>
                         <outlet property="tableView" destination="ht8-gn-MKS" id="ycL-0F-Kst"/>
                     </connections>
                 </viewController>
