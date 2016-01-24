@@ -1,194 +1,142 @@
-
+@@ -2,7 +2,7 @@
 
 import UIKit
 import AFNetworking
 class MoviesViewController: UIViewController,UITableViewDataSource,UITableViewDelegate {
+class MoviesViewController: UIViewController,UITableViewDataSource,UITableViewDelegate, UISearchBarDelegate{
     
     @IBOutlet weak var networkErrorView: UIView!
     
-    //@IBOutlet var scrollView: UIScrollView!
+@@ -10,8 +10,11 @@ class MoviesViewController: UIViewController,UITableViewDataSource,UITableViewDe
     
     @IBOutlet weak var tableView: UITableView!
     
+    @IBOutlet weak var searchBar: UISearchBar!
     
     var movies: [NSDictionary]?
+    var filteredMovies: [NSDictionary]?
+    var allMovies: [NSDictionary]?
     var ifLoaded = false
     var endpoint: String!
     override func viewDidAppear(animated: Bool) {
-        super.viewDidAppear(animated)
-        if(!ifLoaded)
-        {
-        EZLoadingActivity.show("Loading...", disableUI: true)
-            ifLoaded = true
-        }
-    }
+@@ -25,12 +28,18 @@ class MoviesViewController: UIViewController,UITableViewDataSource,UITableViewDe
     override func viewDidLoad() {
         super.viewDidLoad()
         let refreshControl = UIRefreshControl()
+        self.navigationItem.title = "Flicks"
+        let navigationBar = navigationController?.navigationBar
+        navigationBar?.backgroundColor = UIColor(red: 1.0, green: 0.25, blue: 0.25, alpha: 0.8)
         refreshControl.addTarget(self, action: "refreshControlAction:", forControlEvents: UIControlEvents.ValueChanged)
         tableView.insertSubview(refreshControl, atIndex: 0)
         networkErrorView.hidden = true
+        //networkErrorView.hidden = true
         
         tableView.dataSource = self
         tableView.delegate = self
+        searchBar.delegate = self
+        //searchBar.text = "test"
+        filteredMovies = movies
         print("view loaded")
         
         
-        let apiKey = "a07e22bc18f5cb106bfe4cc1f83ad8ed"
-        let url = NSURL(string:"https://api.themoviedb.org/3/movie/\(endpoint)?api_key=\(apiKey)")
-        let request = NSURLRequest(URL: url!)
-        let session = NSURLSession(
-            configuration: NSURLSessionConfiguration.defaultSessionConfiguration(),
-            delegate:nil,
-            delegateQueue:NSOperationQueue.mainQueue()
-        )
-        
-        let task : NSURLSessionDataTask = session.dataTaskWithRequest(request,
-            completionHandler: { (dataOrNil, response, error) in
-                if let data = dataOrNil {
-                    if let responseDictionary = try! NSJSONSerialization.JSONObjectWithData(
-                        data, options:[]) as? NSDictionary {
+@@ -51,14 +60,14 @@ class MoviesViewController: UIViewController,UITableViewDataSource,UITableViewDe
                             //NSLog("response: \(responseDictionary)")
                             self.movies = responseDictionary["results"] as! [NSDictionary]
                             self.tableView.reloadData()
                             
+                            self.allMovies = self.movies
                     }
                 }
                 else
                 {
                     //self.networkErrorView.hidden = false
+                    
                     EZLoadingActivity.hide(success: false, animated: false)
                     self.networkErrorView.hidden = false
+                    //self.networkErrorView.hidden = false
                 }
         });
         task.resume()
-        // Do any additional setup after loading the view.
-        //refreshControl = UIRefreshControl()
-        //refreshControl.addTarget(self, action: "onRefresh", forControlEvents: UIControlEvents.ValueChanged)
-        //tableView.insertSubview(refreshControl, atIndex: 0)
-    }
-    
-    override func didReceiveMemoryWarning() {
-        super.didReceiveMemoryWarning()
-        // Dispose of any resources that can be recreated.
-    }
-    func tableView(tableView: UITableView, numberOfRowsInSection section: Int) -> Int
-    {
-        if let movies = movies{
-            return movies.count
-        }
-        else
-        {
-            return 0
-        }
-    }
-    func tableView(tableView: UITableView, cellForRowAtIndexPath indexPath: NSIndexPath) -> UITableViewCell
-    {
-        let cell = tableView.dequeueReusableCellWithIdentifier("MovieCell", forIndexPath: indexPath) as! MovieCell
-        let movie = movies![indexPath.row]
-        let title = movie["title"] as! String
+@@ -90,16 +99,34 @@ class MoviesViewController: UIViewController,UITableViewDataSource,UITableViewDe
         let overview = movie["overview"] as! String
         cell.titleLabel.text = title
         cell.overviewLabel.text = overview
+        let baseUrl = "http://image.tmdb.org/t/p/w500"
         if let posterPath = movie["poster_path"] as? String
         {
         let baseUrl = "http://image.tmdb.org/t/p/w500"
         let imageUrl = NSURL(string: baseUrl + posterPath)
         
         cell.posterView.setImageWithURL(imageUrl!)
+            let imageUrl = NSURLRequest(URL: NSURL(string: baseUrl + posterPath)!)
+            //let imageUrl = "https://i.imgur.com/tGbaZCY.jpg"
+            //let imageRequest = NSURLRequest(URL: NSURL(string: imageUrl)!)
             
             cell.posterView.alpha = 0
             UIView.animateWithDuration(0.3, animations: { () -> Void in
                 cell.posterView.alpha = 1.0
+            cell.posterView.setImageWithURLRequest(
+                imageUrl,
+                placeholderImage: nil,
+                success: { (imageRequest, imageResponse, image) -> Void in
+                    
+                    // imageResponse will be nil if the image is cached
+                    if imageResponse != nil {
+                        print("Image was NOT cached, fade in image")
+                        cell.posterView.alpha = 0.0
+                        cell.posterView.image = image
+                        UIView.animateWithDuration(0.3, animations: { () -> Void in
+                            cell.posterView.alpha = 1.0
+                        })
+                    } else {
+                        print("Image was cached so just update the image")
+                        cell.posterView.image = image
+                    }
+                },
+                failure: { (imageRequest, imageResponse, error) -> Void in
+                    // do something for the failure condition
             })
         }
         EZLoadingActivity.hide(success: true, animated: false)
-        
-        //print("row \(indexPath.row)")
-        return cell
-    }
-    func delay(delay:Double, closure:()->()) {
-        dispatch_after(
-            dispatch_time(
-                DISPATCH_TIME_NOW,
-                Int64(delay * Double(NSEC_PER_SEC))
-            ),
-            dispatch_get_main_queue(), closure)
-    }
-    
-    /*func onRefresh() {
-    delay(2, closure: {
-    self.refreshControl.endRefreshing()
-    })
-    }*/
-    
+@@ -125,7 +152,7 @@ class MoviesViewController: UIViewController,UITableViewDataSource,UITableViewDe
     func refreshControlAction(refreshControl: UIRefreshControl) {
         EZLoadingActivity.show("Loading...", disableUI: true)
         // Make network request to fetch latest data
         networkErrorView.hidden = true
+        //networkErrorView.hidden = true
         
         tableView.dataSource = self
         tableView.delegate = self
-        
-        
-        
-        let apiKey = "a07e22bc18f5cb106bfe4cc1f83ad8ed"
-        let url = NSURL(string:"https://api.themoviedb.org/3/movie/\(endpoint)?api_key=\(apiKey)")
-        let request = NSURLRequest(URL: url!)
-        let session = NSURLSession(
-            configuration: NSURLSessionConfiguration.defaultSessionConfiguration(),
-            delegate:nil,
-            delegateQueue:NSOperationQueue.mainQueue()
-        )
-        
-        let task : NSURLSessionDataTask = session.dataTaskWithRequest(request,
-            completionHandler: { (dataOrNil, response, error) in
-                if let data = dataOrNil {
-                    if let responseDictionary = try! NSJSONSerialization.JSONObjectWithData(
-                        data, options:[]) as? NSDictionary {
-                            //NSLog("response: \(responseDictionary)")
-                            
-                            self.movies = responseDictionary["results"] as! [NSDictionary]
-                            self.tableView.reloadData()
-                            EZLoadingActivity.hide(success: true, animated: false)
-                    }
-                }
-                else
+@@ -157,7 +184,7 @@ class MoviesViewController: UIViewController,UITableViewDataSource,UITableViewDe
                 {
                     //self.networkErrorView.hidden = false
                     EZLoadingActivity.hide(success: false, animated: false)
                     self.networkErrorView.hidden = false
+                    //self.networkErrorView.hidden = false
                 }
         });
         task.resume()
-        
-        // Do the following when the network request comes back successfully:
-        // Update tableView data source
-        self.tableView.reloadData()
-        refreshControl.endRefreshing()
-    }
-    
-    
-    
-    
-    // MARK: - Navigation
-    // In a storyboard-based application, you will often want to do a little preparation before navigation
-    override func prepareForSegue(segue: UIStoryboardSegue, sender: AnyObject?) {
-        let cell = sender as! UITableViewCell
-        let indexPath = tableView.indexPathForCell(cell)
-        let movie = movies![indexPath!.row]
-        let detailViewController = segue.destinationViewController as! DetailViewController
-        detailViewController.movie = movie
-        
-        //cell.selectionStyle = .None
-        let backgroundView = UIView()
-        backgroundView.backgroundColor = UIColor.redColor()
-        cell.selectedBackgroundView = backgroundView
-        
-        print("prepare for segue")
-    // Get the new view controller using segue.destinationViewController.
+@@ -190,5 +217,23 @@ class MoviesViewController: UIViewController,UITableViewDataSource,UITableViewDe
     // Pass the selected object to the new view controller.
     }
     
+    func searchBar(searchBar: UISearchBar, textDidChange searchText: String) {
+        movies = allMovies
+        filteredMovies = searchText.isEmpty ? movies : movies!.filter {
+            $0["title"]!.containsString(searchText)
+        }
+        movies = filteredMovies
+        tableView.reloadData()
+        print("searchbar updated")
+        
+    }
+    func searchBarCancelButtonClicked(searchBar: UISearchBar) {
+        searchBar.text = ""
+        print("searchbar canceled")
+        movies = allMovies
+        searchBar.resignFirstResponder()
+        self.tableView.reloadData()
+    }
     
-}
+    
+} 
